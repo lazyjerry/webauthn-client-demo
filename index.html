@@ -134,14 +134,8 @@
 							headers: { "Content-Type": "application/json" },
 							body: JSON.stringify({ username }),
 						}).then((r) => r.text());
-						console.log(`'${username}'`);
-						console.log(`'${challenge}'`);
-						const registration = await client.register(
-							{
-								user: username,
-							},
-							challenge
-						);
+
+						const registration = await client.register(username, challenge);
 
 						await fetch(`${API}/register/verify`, {
 							method: "POST",
