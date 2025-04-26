@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>WebAuthn 示範</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+		<style>
+			.fade-in {
+				animation: fadeIn 0.3s ease-in-out;
+			}
+
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(10px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			.biometric-icon {
+				font-size: 3rem;
+				color: #4f46e5;
+			}
+		</style>
+	</head>
+	<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+		<div class="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden fade-in">
+			<div class="bg-indigo-600 py-4 px-6">
+				<h1 class="text-2xl font-bold text-white text-center">WebAuthn 示範</h1>
+				<p class="text-indigo-100 text-center mt-1">無密碼身份驗證系統</p>
+			</div>
+
+			<div class="p-6">
+				<div class="text-center mb-8">
+					<i class="fas fa-fingerprint biometric-icon mb-4"></i>
+					<h2 class="text-xl font-semibold text-gray-800">安全的生物識別登入</h2>
+					<p class="text-gray-500 mt-2">使用您的設備生物識別感測器或安全金鑰</p>
+				</div>
+
+				<div class="space-y-4">
+					<div id="registerSection" class="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
+						<h3 class="font-medium text-indigo-800 mb-3">新用戶？</h3>
+						<div class="flex items-center space-x-3">
+							<input
+								type="text"
+								id="username"
+								placeholder="輸入用戶名"
+								class="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+							/>
+							<button
+								id="registerBtn"
+								class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+							>
+								註冊
+							</button>
+						</div>
+					</div>
+
+					<div id="loginSection" class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+						<h3 class="font-medium text-gray-800 mb-3">已有帳號？</h3>
+						<div class="flex items-center space-x-3">
+							<input
+								type="text"
+								id="loginUsername"
+								placeholder="輸入您的用戶名"
+								class="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+							/>
+							<button
+								id="loginBtn"
+								class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+							>
+								登入
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<div id="statusMessage" class="mt-6 p-3 rounded-lg hidden"></div>
+
+				<div class="mt-8 pt-6 border-t border-gray-200">
+					<div class="flex justify-center space-x-4">
+						<button id="testFingerprintBtn" class="flex items-center space-x-2 text-indigo-600 hover:text-indigo-800">
+							<i class="fas fa-fingerprint"></i>
+							<span>測試指紋</span>
+						</button>
+						<button id="testSecurityKeyBtn" class="flex items-center space-x-2 text-indigo-600 hover:text-indigo-800">
+							<i class="fas fa-key"></i>
+							<span>測試安全金鑰</span>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- <script
+			type="module"
+			src="https://cdn.jsdelivr.net/npm/@passwordless-id/webauthn/dist/webauthn.min.js?module"
+		></script> -->
+		<script type="module">
+			import { client } from "https://cdn.jsdelivr.net/npm/@passwordless-id/webauthn/dist/webauthn.min.js?module";
+
+			const API = "https://webauthn.crazyjerry.workers.dev";
+
+			document.addEventListener("DOMContentLoaded", () => {
+				const el = (id) => document.getElementById(id);
+				const showStatus = (msg, type) => {
+					const box = el("statusMessage");
+					box.textContent = msg;
+					box.className =
+						"mt-6 p-3 rounded-lg " +
+						(type === "error"
+							? "bg-red-100 text-red-700"
+							: type === "success"
+							? "bg-green-100 text-green-700"
+							: type === "info"
+							? "bg-blue-100 text-blue-700"
+							: "bg-gray-100 text-gray-700");
+					box.classList.remove("hidden");
+				};
+
+				/* ---------- 註冊 ---------- */
+				el("registerBtn").addEventListener("click", async () => {
+					const username = el("username").value.trim();
+					if (!username) return showStatus("請輸入用戶名", "error");
+
+					showStatus("正在註冊您的設備…", "info");
+					try {
+						const challenge = await fetch(`${API}/register/challenge`, {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({ username }),
+						}).then((r) => r.text());
+						console.log(`'${username}'`);
+						console.log(`'${challenge}'`);
+						const registration = await client.register(
+							{
+								user: username,
+							},
+							challenge
+						);
+
+						await fetch(`${API}/register/verify`, {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({ username, registration }),
+						});
+
+						showStatus(`${username} 註冊成功！`, "success");
+						el("loginUsername").value = username;
+					} catch (err) {
+						console.error(err);
+						showStatus("註冊失敗: " + err.message, "error");
+					}
+				});
+
+				/* ---------- 登入 ---------- */
+				el("loginBtn").addEventListener("click", async () => {
+					const username = el("loginUsername").value.trim();
+					if (!username) return showStatus("請輸入您的用戶名", "error");
+
+					showStatus("正在驗證… 請觸發生物識別", "info");
+					try {
+						const { challenge, credentialIds } = await fetch(`${API}/login/challenge`, {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({ username }),
+						}).then((r) => r.json());
+
+						const authentication = await client.authenticate({ challenge, credentialIds });
+
+						await fetch(`${API}/login/verify`, {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({ username, authentication }),
+						});
+
+						showStatus(`歡迎回來，${username}！`, "success");
+					} catch (err) {
+						console.error(err);
+						showStatus("登入失敗: " + err.message, "error");
+					}
+				});
+
+				/* 兩個測試按鈕（純前端動畫） */
+				el("testFingerprintBtn").onclick = () => {
+					showStatus("正在測試指紋感測器… (模擬)", "info");
+					setTimeout(() => showStatus("指紋識別成功！", "success"), 1500);
+				};
+				el("testSecurityKeyBtn").onclick = () => {
+					showStatus("正在測試安全金鑰… (模擬)", "info");
+					setTimeout(() => showStatus("安全金鑰驗證成功！", "success"), 1500);
+				};
+			});
+		</script>
+	</body>
+</html>
