@@ -4,7 +4,7 @@
 搭配 Cloudflare Workers 後端，即可實現無密碼註冊與登入。
 
 👉 [前端 DEMO](https://webauthn-client-demo.pages.dev/)  
-👉 [後端 DEMO（可能失效）](https://webauthn.crazyjerry.workers.dev)
+👉 [後端 DEMO（可能失效，請自行部屬並替換前端 API）](https://webauthn.crazyjerry.workers.dev)
 
 > ⚡ 若後端 demo 無法連線，請參考 [lazyjerry/webauthn](https://github.com/lazyjerry/webauthn) 自行部署 Cloudflare Workers！
 
@@ -12,7 +12,7 @@
 
 ## 注意事項 Important Notes
 
-- 本專案最初使用了較舊版 [`@passwordless-id/webauthn`](https://github.com/passwordless-id/webauthn)：
+- 本專案使用了較舊版 [`@passwordless-id/webauthn`](https://github.com/passwordless-id/webauthn)：
 
   ```text
   https://cdn.jsdelivr.net/npm/@passwordless-id/webauthn/dist/webauthn.min.js?module
@@ -21,12 +21,12 @@
   •	目前已更新至 2.3.0 版本，並以原生 ESM 模式載入：
   ```
 
-https://cdn.jsdelivr.net/npm/@passwordless-id/webauthn@2.3.0/+esm
-
-    •	詳細差異與最佳實踐，請參考：
-    •	GitHub Repo
-    •	WebAuthn.io 官方測試站
-    •	本專案 Server 端來自 AprilNEA/webauthn-workers 進行修改，
+  新版是：
+  https://cdn.jsdelivr.net/npm/@passwordless-id/webauthn@2.3.0/+esm
+  詳細差異與最佳實踐，請參考：
+  • GitHub Repo
+  • WebAuthn.io 官方測試站
+  • 本專案 Server 端來自 AprilNEA/webauthn-workers 進行修改，
 
 已部署於 Cloudflare Workers + KV，支援完整註冊、登入流程與 counter 防呆機制。
 
@@ -61,14 +61,17 @@ live-server --host=localhost --port=8080
 
 ⸻
 
-搭配 Server 部署 1. 後端部署
-Fork 並參考 lazyjerry/webauthn 部署至 Cloudflare Workers
-（需開啟 Workers KV 功能）。 2. 設定前端 API
-修改 index.html 頂部：
+搭配 Server 部署
+
+1. 後端部署
+   Fork 並參考 lazyjerry/webauthn 部署至 Cloudflare Workers
+   （需開啟 Workers KV 功能）。
+2. 設定前端 API
+   修改 index.html 頂部：
 
 const API = "https://webauthn.<your-subdomain>.workers.dev";
 
-    3.	重新整理頁面，即可完成無密碼登入／註冊體驗。
+3. 重新整理頁面，即可完成無密碼登入／註冊體驗。
 
 ⸻
 
@@ -87,7 +90,7 @@ web-authn-client-demo/
 技術棧 Tech Stack
 
 分類 使用套件 說明
-WebAuthn 客戶端 @passwordless-id/webauthn (v2.3.0) 使用 jsDelivr +esm 載入
+WebAuthn 客戶端 @passwordless-id/webauthn 使用 jsDelivr +esm 載入
 UI 框架 TailwindCSS CDN 版 輕量快速的樣式設計
 圖示 Font Awesome 6 指紋／金鑰圖示支援
 本地伺服器 live-server 簡單即時重載伺服器
