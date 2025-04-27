@@ -134,9 +134,10 @@
 							headers: { "Content-Type": "application/json" },
 							body: JSON.stringify({ username }),
 						}).then((r) => r.text());
-
+						console.log(challenge);
+						console.log(username);
 						const registration = await client.register(username, challenge);
-
+						console.log(registration);
 						await fetch(`${API}/register/verify`, {
 							method: "POST",
 							headers: { "Content-Type": "application/json" },
@@ -164,7 +165,10 @@
 							body: JSON.stringify({ username }),
 						}).then((r) => r.json());
 
-						const authentication = await client.authenticate({ challenge, credentialIds });
+						console.log(challenge);
+						console.log(credentialIds);
+						console.log(username);
+						const authentication = await client.authenticate(credentialIds, challenge);
 
 						await fetch(`${API}/login/verify`, {
 							method: "POST",
